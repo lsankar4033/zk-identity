@@ -7,18 +7,21 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 
 /*
  * Prove: I know (sig, msg, pubkey, nullifier, nullifierHash, merkle_branch, merkle_root) s.t.:
- * - sig == ecdsa_verify(msg, pubkey)
- * - merkle_verify(pubkey, merkle_branch, merkle_root)
- *   - tree built with mimc hashes
- * - nullifier = mimc_hash(sig)
- * - nullifierHash = mimc_hash(nullifier)
+ * - sig == ecdsa_verify(r, s, msghash, pubkey)
+ * - merkle_verify(pubkey, merkleRoot, merklePathElements, merklePathIndices)
+ * - nullifier = poseidon(sig)
+ * - nullifierHash = poseidon(nullifier)
+ *
+ * We may choose to make all of these constants in the future:
+ * levels = levels in the merkle branch
+ * n = num bits for bigint number registers
+ * k = num registers for bigint numbers
  */
-template VerifyDfWinner(levels) {
-  signal input sig;
-  signal input msg;
-  signal input pubkey;
-
-  signal input pubkey
+template VerifyDfWinner(n, k, levels) {
+  signal input r[k];
+  signal input s[k];
+  signal input msghash[k];
+  signal input pubkey[2][k];
 
   signal input nullifier;
   signal input nullifierHash;
@@ -28,11 +31,21 @@ template VerifyDfWinner(levels) {
   signal input merkleRoot;
 
   // sig verify
-  component sigVerify = ECDSAVerify(86, 3); // 3 registers of 86 bits each (TBD)
+  component sigVerify = ECDSAVerify(n, k);
+  for (var i = 0; i < k; i++) {
+    sigVerify.r[i] <== r[i];
+    sigVerify.s[i] <== s[i];
+    sigVerify.msghash[i] <== msghash[i];
+
+    sigVerify.pubkey[0][i] <== pubkey[0][i];
+    sigVerify.pubkey[1][i] <== pubkey[1][i];
+  }
+  sigVerify.result === 1; // or whatever signifies success
 
   // merkle verify
   component treeChecker = MerkleTreeChecker(levels);
-  treeChecker.leaf <== pubkey;
+  // TODO: figure out correct leaf given pubkey[2][k]
+  /*treeChecker.leaf <== pubkey;*/
   treeChecker.root <== merkleRoot;
   for (var i = 0; i < levels; i++) {
     treeChecker.pathElements[i] <== merklePathElements[i];
