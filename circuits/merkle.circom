@@ -1,4 +1,3 @@
-// NOTE: adapted from tornado.cash
 include "../node_modules/circomlib/circuits/poseidon.circom";
 
 // if s == 0 returns [in[0], in[1]]
