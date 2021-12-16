@@ -11,7 +11,6 @@ include "../node_modules/circomlib/circuits/bitify.circom";
  * - sig == ecdsa_verify(r, s, msghash, pubkey)
  * - merkle_verify(pubkey, merkleRoot, merklePathElements, merklePathIndices)
  * - nullifier = poseidon(sig)
- * -
  *
  * We may choose to make all of these constants in the future:
  * levels = levels in the merkle branch
@@ -35,7 +34,6 @@ template VerifyDfWinner(n, k, levels) {
 
   signal rNum;
   signal pubkeyBitRegisters[2][k];
-
 
   // sig verify
   component sigVerify = ECDSAVerify(n, k);
