@@ -6,4 +6,6 @@ template ECDSAVerify(n, k) {
     signal input pubkey[2][k];
 
     signal output result;
+
+    result <== 1;
 }
