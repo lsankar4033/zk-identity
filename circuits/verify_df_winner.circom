@@ -23,9 +23,7 @@ template VerifyDfWinner(n, k, levels) {
   signal input s[k];
   signal input msghash[k];
 
-  // TODO: figure out if we can remove pubkey by doing a 'direct' verify on address
   signal input pubkey[2][k];
-  signal input address; // num? or bits?
 
   signal input nullifier;
 
@@ -33,6 +31,7 @@ template VerifyDfWinner(n, k, levels) {
   signal input merklePathIndices[levels];
   signal input merkleRoot; // of eth addresses
 
+  signal address; // for now, num, but could be bit array too
   signal rNum;
   signal pubkeyBitRegisters[2][k];
 
@@ -49,8 +48,13 @@ template VerifyDfWinner(n, k, levels) {
   sigVerify.result === 1;
 
   // verify address = keccak(pubkey)
-  // pubkeybits (x,y) bits -> pubkey
-
+  component pubkeyToAddress = PubkeyToAddress(n, k);
+  // TODO: input pubkey
+  for (var i = 0; i < k; i++) {
+    pubkeyToAddress.pubkey[0][i] <== pubkey[0][i];
+    pubkeyToAddress.pubkey[1][i] <== pubkey[1][i];
+  }
+  address <== pubkeyToAddress.address;
 
   // merkle verify
   component treeChecker = MerkleTreeChecker(levels);
