@@ -4,7 +4,7 @@
   "description": "Proof of DF winner",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,12 @@
   },
   "homepage": "https://github.com/lsankar4033/zk-identity#readme",
   "dependencies": {
-    "circomlib": "2.0.2"
+    "circom_tester": "0.0.9",
+    "circomlib": "2.0.2",
+    "ffjavascript": "0.2.46"
+  },
+  "devDependencies": {
+    "chai": "4.3.4",
+    "mocha": "9.1.3"
   }
 }
