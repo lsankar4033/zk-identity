@@ -41,6 +41,7 @@ template PubkeyToAddress(n, k) {
     component keccak = Keccak(512, 256);
     for (var i = 0; i < 512; i++) {
       // TODO: determine if trailing bits in pubkeyBits are handled properly here (i.e. ordered properly)
+      // TODO: @wdli mentioned that keccak's input is a byte array (not a bit array); test this
       keccak.in[i] <== pubkeyBits[i];
     }
 
