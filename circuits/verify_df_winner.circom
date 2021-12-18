@@ -1,7 +1,8 @@
-pragma circom 2.0.1; // NOTE: may need to revert to 1.x for web?
+pragma circom 2.0.1;
 
 include "./merkle.circom";
 include "./ecdsa.circom";
+include "./eth.circom";
 
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
@@ -24,7 +25,7 @@ template VerifyDfWinner(n, k, levels) {
 
   // TODO: figure out if we can remove pubkey by doing a 'direct' verify on address
   signal input pubkey[2][k];
-  signal input address;
+  signal input address; // num? or bits?
 
   signal input nullifier;
 
@@ -50,6 +51,7 @@ template VerifyDfWinner(n, k, levels) {
   // verify address = keccak(pubkey)
   // pubkeybits (x,y) bits -> pubkey
 
+
   // merkle verify
   component treeChecker = MerkleTreeChecker(levels);
   treeChecker.leaf <== address;
@@ -66,7 +68,6 @@ template VerifyDfWinner(n, k, levels) {
   }
   rNum <== rToNum.out;
 
-  // TODO: do we need another round of hash checking?
   component nullifierCheck = Poseidon(1);
   nullifierCheck.inputs[0] <== rNum;
   nullifierCheck.out === nullifier;
