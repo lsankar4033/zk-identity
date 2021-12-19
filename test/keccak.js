@@ -39,6 +39,21 @@ function bitsToBytes(a) {
   return b;
 }
 
+function hexToBytes(hex) {
+    for (var bytes = [], c = 0; c < hex.length; c += 2)
+        bytes.push(parseInt(hex.substr(c, 2), 16));
+    return bytes;
+}
+
+function bytesToHex(bytes) {
+    for (var hex = [], i = 0; i < bytes.length; i++) {
+        var current = bytes[i] < 0 ? bytes[i] + 256 : bytes[i];
+        hex.push((current >>> 4).toString(16));
+        hex.push((current & 0xF).toString(16));
+    }
+    return hex.join("");
+}
+
 describe("Keccak 32byte input and output test", function () {
   this.timeout(100000);
 
@@ -46,7 +61,6 @@ describe("Keccak 32byte input and output test", function () {
   before(async () => {
     circuit= await wasm_tester(path.join(__dirname, "circuits", "keccak_256_256.circom"));
     await circuit.loadConstraints();
-    console.log("n_constraints", circuit.constraints.length);
   });
 
   // NOTE: test case from vocdoni/keccak256-circom
@@ -57,9 +71,9 @@ describe("Keccak 32byte input and output test", function () {
       65, 228, 211, 170, 133, 153, 9, 88, 212, 4, 212, 175, 238, 249,
     210, 214, 116, 170, 85, 45, 21];
 
-    const inIn = bytesToBits(input);
+    const inBits = bytesToBits(input);
 
-    const witness = await circuit.calculateWitness({ "in": inIn }, true);
+    const witness = await circuit.calculateWitness({ "in": inBits }, true);
 
     const stateOut = witness.slice(1, 1+(32*8));
     const stateOutBytes = bitsToBytes(stateOut);
@@ -68,5 +82,25 @@ describe("Keccak 32byte input and output test", function () {
 });
 
 describe("Keccak 64byte input, 32byte output (Eth pubkey->address) test", function () {
+  this.timeout(100000);
 
+  let circuit
+  before(async () => {
+    circuit= await wasm_tester(path.join(__dirname, "circuits", "keccak_512_256.circom"));
+    await circuit.loadConstraints();
+  });
+
+  it("properly hashes an Eth pubkey to its keccak hash", async () => {
+    // random hex examples I tested with eth libs
+    const inHex = "11f2b30c9479ccaa639962e943ca7cfd3498705258ddb49dfe25bba00a555e48cb35a79f3d084ce26dbac0e6bb887463774817cb80e89b20c0990bc47f9075d5"
+    const expectedOutHex = "f2c712fa067b0bb7f35a89ecc2524c08e0166f6a3b8d9925f8864c8ee18cb729"
+
+    const inBits = bytesToBits(hexToBytes(inHex));
+
+    const witness = await circuit.calculateWitness({ "in": inBits }, true);
+
+    const outBits = witness.slice(1, 1+(32*8));
+    const outHex = bytesToHex(bitsToBytes(outBits));
+    assert.equal(outHex, expectedOutHex);
+  });
 });
